@@ -153,24 +153,38 @@ def train_and_save_pipeline(profile_df, models_dir, k_range=[2, 3, 4, 5]):
 def predict_single_learner(learner_features_dict, models_dir):
     """
     Predicts cluster and computes confidence score for a single learner feature dictionary.
+    Supports both scikit-learn/joblib artifacts and direct learned matrix inference.
     """
     models_dir = Path(models_dir)
-    scaler = joblib.load(models_dir / "scaler.pkl")
-    kmeans = joblib.load(models_dir / "kmeans.pkl")
     with open(models_dir / "model_metadata.json", "r", encoding="utf-8") as f:
         metadata = json.load(f)
         
-    # Build vector in exact order
-    feat_vec = [learner_features_dict.get(col, 0.0) for col in FEATURE_COLUMNS]
-    vec_scaled = scaler.transform([feat_vec])
+    feat_vec = [float(learner_features_dict.get(col, 0.0)) for col in FEATURE_COLUMNS]
     
-    cluster_id = int(kmeans.predict(vec_scaled)[0])
-    
+    # Dual execution: try scikit-learn / joblib or fallback to mathematical matrix inference
+    try:
+        scaler = joblib.load(models_dir / "scaler.pkl")
+        kmeans = joblib.load(models_dir / "kmeans.pkl")
+        vec_scaled = scaler.transform([feat_vec])
+        cluster_id = int(kmeans.predict(vec_scaled)[0])
+        centers = kmeans.cluster_centers_
+    except Exception:
+        scaler_mean = np.array(metadata.get("scaler_mean", []))
+        scaler_scale = np.array(metadata.get("scaler_scale", []))
+        centers = np.array(metadata.get("cluster_centers", []))
+        
+        vec = np.array(feat_vec)
+        if len(scaler_mean) == len(vec) and len(scaler_scale) == len(vec):
+            vec_scaled = (vec - scaler_mean) / scaler_scale
+        else:
+            vec_scaled = vec
+            
+        distances_to_centers = np.linalg.norm(centers - vec_scaled, axis=1)
+        cluster_id = int(np.argmin(distances_to_centers))
+        vec_scaled = np.array([vec_scaled])
+
     # Compute confidence based on distance to centroid vs distance to other centroids
-    distances = np.linalg.norm(kmeans.cluster_centers_ - vec_scaled, axis=1)
-    min_dist = distances[cluster_id]
-    
-    # Softmax-style or inverse distance confidence mapping (clamped between 75% and 96%)
+    distances = np.linalg.norm(centers - vec_scaled, axis=1)
     exp_neg_dist = np.exp(-distances)
     prob = exp_neg_dist[cluster_id] / np.sum(exp_neg_dist)
     confidence = float(np.clip(prob * 100, 75.0, 96.0))
@@ -184,3 +198,4 @@ def predict_single_learner(learner_features_dict, models_dir):
         "confidence_score": round(confidence, 1),
         "metadata": metadata
     }
+
