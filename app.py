@@ -81,14 +81,30 @@ def create_app(config_class=Config):
             "app_name": "LearnOS"
         }
         
-    # Error handlers
+    # Health check endpoints for monitoring and serverless verification
+    @app.route("/health")
+    @app.route("/api/health")
+    def health_check():
+        return {
+            "status": "ok",
+            "app": "LearnOS",
+            "serverless": bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+        }, 200
+
+    # Error handlers with safe fallback
     @app.errorhandler(404)
     def page_not_found(e):
-        return render_template("404.html"), 404
+        try:
+            return render_template("404.html"), 404
+        except Exception:
+            return "<h1>404 - Page Not Found</h1><p>The requested page was not found.</p>", 404
         
     @app.errorhandler(500)
     def internal_server_error(e):
-        return render_template("500.html"), 500
+        try:
+            return render_template("500.html"), 500
+        except Exception:
+            return "<h1>500 - Internal Server Error</h1><p>An error occurred while processing your request.</p>", 500
         
     return app
 
