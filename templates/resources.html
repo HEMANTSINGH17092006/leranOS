@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Learning Resources - LearnOS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h1 class="welcome-title">Learning Resources Library</h1>
+    <p class="welcome-subtitle">Curated materials, lecture notes, video deep-dives, and project guides.</p>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card-custom mb-4 p-3">
+  <div class="d-flex flex-wrap gap-2 align-items-center">
+    <span class="text-muted small fw-semibold me-2"><i class="bi bi-funnel"></i> Subject:</span>
+    {% for s in subjects %}
+    <a href="{{ url_for('resources.index', subject=s, type=selected_type) }}" 
+       class="badge-custom {% if selected_subject == s or (s == 'All' and not selected_subject) %}badge-primary{% else %}badge-secondary bg-light text-muted border{% endif %} text-decoration-none">
+      {{ s }}
+    </a>
+    {% endfor %}
+  </div>
+  
+  <hr class="my-2">
+  
+  <div class="d-flex flex-wrap gap-2 align-items-center">
+    <span class="text-muted small fw-semibold me-2"><i class="bi bi-tags"></i> Format:</span>
+    {% for t in types %}
+    <a href="{{ url_for('resources.index', subject=selected_subject, type=t) }}" 
+       class="badge-custom {% if selected_type == t or (t == 'All' and not selected_type) %}badge-warning{% else %}badge-secondary bg-light text-muted border{% endif %} text-decoration-none">
+      {{ t }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Resources Grid -->
+<div class="row g-3">
+  {% for res in resources %}
+  <div class="col-12 col-md-6 col-xl-4">
+    <div class="card-custom h-100 d-flex flex-column justify-content-between p-3 hover-shadow transition">
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="badge-custom badge-primary small">{{ res.subject }}</span>
+          <span class="badge bg-light text-muted border small">{{ res.difficulty }}</span>
+        </div>
+        
+        <div class="d-flex align-items-start gap-2 mb-2">
+          <i class="bi {{ res.icon }} fs-4 text-primary mt-1"></i>
+          <div>
+            <h6 class="fw-bold text-dark mb-1">{{ res.title }}</h6>
+            <div class="text-muted small mb-2" style="font-size: 0.75rem;">
+              <i class="bi bi-clock me-1"></i> {{ res.estimated_time }} • {{ res.resource_type }}
+            </div>
+          </div>
+        </div>
+        
+        <p class="text-muted small mb-3" style="font-size: 0.82rem; line-height: 1.5;">
+          {{ res.description }}
+        </p>
+      </div>
+      
+      <div>
+        <button class="btn btn-sm btn-outline-primary w-100 view-resource-btn" 
+                data-title="{{ res.title }}" 
+                data-subject="{{ res.subject }}" 
+                data-type="{{ res.resource_type }}" 
+                data-summary="{{ res.content_summary }}"
+                data-bs-toggle="modal" 
+                data-bs-target="#resourcePreviewModal">
+          <i class="bi bi-box-arrow-up-right me-1"></i> Open Material
+        </button>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="card-custom text-center py-5 text-muted">
+      <i class="bi bi-inbox fs-1 mb-2"></i>
+      <div>No resources found matching the selected filters.</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Resource Preview Modal -->
+<div class="modal fade" id="resourcePreviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+      <div class="modal-header">
+        <div>
+          <span class="badge-custom badge-primary small mb-1" id="modalResSubject">Python</span>
+          <h5 class="modal-title fw-bold text-dark" id="modalResTitle">Resource Title</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <h6 class="fw-bold text-dark mb-2">Resource Summary & Learning Objectives:</h6>
+        <div class="p-3 bg-light rounded-3 border mb-4 text-muted small" id="modalResSummary" style="line-height: 1.7;">
+          Summary text goes here...
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center pt-2">
+          <span class="text-muted small"><i class="bi bi-check-circle-fill text-success me-1"></i> Interactive Study Material</span>
+          <button type="button" class="btn btn-primary-custom" data-bs-dismiss="modal">
+            Close Viewer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.view-resource-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('modalResTitle').innerText = btn.getAttribute('data-title');
+      document.getElementById('modalResSubject').innerText = btn.getAttribute('data-subject');
+      document.getElementById('modalResSummary').innerText = btn.getAttribute('data-summary') || 'No additional summary available.';
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}LearnOS - AI Personalised Learning Platform{% endblock %}</title>
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5 CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  
+  <!-- Custom Design System CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block styles %}{% endblock %}
+</head>
+<body>
+
+<div class="app-container">
+  
+  <!-- Left Sidebar (Matching PDF) -->
+  <aside class="app-sidebar" id="appSidebar">
+    <a href="{{ url_for('dashboard.index') }}" class="sidebar-brand">
+      <div class="brand-icon">
+        <i class="bi bi-mortarboard-fill"></i>
+      </div>
+      <div>
+        <div class="brand-title">LearnOS</div>
+        <div class="brand-subtitle">Learn Smarter, Grow Faster</div>
+      </div>
+    </a>
+    
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard.index') }}" class="nav-link-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Dashboard</span>
+      </a>
+      
+      <a href="{{ url_for('profile.index') }}" class="nav-link-item {% if request.endpoint == 'profile.index' %}active{% endif %}">
+        <i class="bi bi-person-fill"></i>
+        <span>My Profile</span>
+      </a>
+      
+      <a href="{{ url_for('analysis.index') }}" class="nav-link-item {% if request.endpoint == 'analysis.index' %}active{% endif %}">
+        <i class="bi bi-cpu-fill"></i>
+        <span>AI Analysis</span>
+      </a>
+      
+      <a href="{{ url_for('recommendations.index') }}" class="nav-link-item {% if request.endpoint == 'recommendations.index' %}active{% endif %}">
+        <i class="bi bi-check2-square"></i>
+        <span>Recommendations</span>
+      </a>
+      
+      <a href="{{ url_for('quiz.index') }}" class="nav-link-item {% if 'quiz' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-pencil-square"></i>
+        <span>Practice Quiz</span>
+      </a>
+      
+      <a href="{{ url_for('progress.index') }}" class="nav-link-item {% if request.endpoint == 'progress.index' %}active{% endif %}">
+        <i class="bi bi-bar-chart-line-fill"></i>
+        <span>Progress & Analytics</span>
+      </a>
+      
+      <a href="{{ url_for('resources.index') }}" class="nav-link-item {% if request.endpoint == 'resources.index' %}active{% endif %}">
+        <i class="bi bi-collection-play-fill"></i>
+        <span>Learning Resources</span>
+      </a>
+      
+      <a href="{{ url_for('settings.index') }}" class="nav-link-item {% if request.endpoint == 'settings.index' %}active{% endif %}">
+        <i class="bi bi-gear-fill"></i>
+        <span>Settings</span>
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer-card">
+      <p>"Personalised Learning for a Brighter Tomorrow"</p>
+    </div>
+  </aside>
+  
+  <!-- Main Content Viewport -->
+  <div class="app-main">
+    
+    <!-- Top Navbar -->
+    <header class="app-topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button class="mobile-sidebar-toggle" id="sidebarToggleBtn" aria-label="Toggle Navigation">
+          <i class="bi bi-list"></i>
+        </button>
+        <div class="search-input-wrapper">
+          <i class="bi bi-search"></i>
+          <input type="text" class="search-input" placeholder="Search for topics, quizzes, or resources..." id="globalSearchInput">
+        </div>
+      </div>
+      
+      <div class="topbar-right">
+        <div class="quote-pill d-none d-lg-flex">
+          <i class="bi bi-quote"></i>
+          <span>"Small progress each day leads to big results."</span>
+        </div>
+        
+        <button class="notif-btn" title="Notifications">
+          <i class="bi bi-bell"></i>
+          <span class="notif-dot"></span>
+        </button>
+        
+        {% if current_user %}
+        <div class="dropdown">
+          <div class="user-profile-pill" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="avatar-circle">
+              {{ current_user.name[0] | upper }}
+            </div>
+            <span class="user-pill-name d-none d-sm-inline">{{ current_user.name }}</span>
+            <i class="bi bi-chevron-down text-muted" style="font-size: 0.75rem;"></i>
+          </div>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2" style="border-radius: 12px; font-size: 0.88rem;">
+            <li class="px-3 py-2 border-bottom">
+              <div class="fw-bold">{{ current_user.name }}</div>
+              <div class="text-muted small">{{ current_user.email }}</div>
+            </li>
+            <li><a class="dropdown-item py-2" href="{{ url_for('profile.index') }}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item py-2" href="{{ url_for('settings.index') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+          </ul>
+        </div>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-primary-custom">Login</a>
+        {% endif %}
+      </div>
+    </header>
+    
+    <!-- Page Body -->
+    <main class="page-body">
+      
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm mb-4" role="alert" style="border-radius: 12px;">
+              <i class="bi {% if category == 'success' %}bi-check-circle-fill text-success{% elif category == 'danger' %}bi-exclamation-triangle-fill text-danger{% else %}bi-info-circle-fill text-primary{% endif %} me-2"></i>
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Custom Main JS -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

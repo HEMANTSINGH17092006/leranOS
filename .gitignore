@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Database
+instance/*.db
+*.sqlite3
+
+# Environment
+.env
+
+# VS Code / IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Static cache
+*.log

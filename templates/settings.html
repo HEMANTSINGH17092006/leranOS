@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - LearnOS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h1 class="welcome-title">Account Settings</h1>
+    <p class="welcome-subtitle">Manage your personal profile, target goals, and security preferences.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  
+  <!-- Profile & Academic Settings -->
+  <div class="col-12 col-lg-7">
+    <div class="card-custom mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-person-gear text-primary me-2"></i>Profile & Academic Info</h5>
+      
+      <form action="{{ url_for('settings.index') }}" method="POST">
+        <input type="hidden" name="action" value="update_profile">
+        
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Full Name</label>
+          <input type="text" class="form-control" name="name" value="{{ user.name }}" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Email Address (Read-only)</label>
+          <input type="email" class="form-control bg-light" value="{{ user.email }}" readonly>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Degree / Branch</label>
+            <input type="text" class="form-control" name="degree" value="{{ profile.degree if profile else 'B.Tech CSE' }}">
+          </div>
+          <div class="col-6">
+            <label class="form-label small fw-semibold">Current Year</label>
+            <input type="text" class="form-control" name="year" value="{{ profile.year if profile else '2nd Year' }}">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Target Mastery Score (%)</label>
+          <input type="number" class="form-control" name="target_score" value="{{ profile.target_mastery_score | int if profile else 80 }}" min="50" max="100">
+          <div class="form-text text-muted small">Your recommendation path will adapt towards this mastery milestone.</div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label small fw-semibold">Preferred Subjects</label>
+          <input type="text" class="form-control" name="preferred_subjects" value="{{ profile.preferred_subjects if profile else 'Python, Data Structures' }}">
+          <div class="form-text text-muted small">Comma-separated topics you want prioritized in your feed.</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary-custom">
+          Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Password & Security -->
+  <div class="col-12 col-lg-5">
+    <div class="card-custom mb-4">
+      <h5 class="fw-bold mb-3"><i class="bi bi-shield-lock text-danger me-2"></i>Change Password</h5>
+      
+      <form action="{{ url_for('settings.index') }}" method="POST">
+        <input type="hidden" name="action" value="change_password">
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Current Password</label>
+          <input type="password" class="form-control" name="current_password" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">New Password</label>
+          <input type="password" class="form-control" name="new_password" required minlength="6">
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label small fw-semibold">Confirm New Password</label>
+          <input type="password" class="form-control" name="confirm_password" required minlength="6">
+        </div>
+
+        <button type="submit" class="btn btn-secondary-custom w-100 justify-content-center">
+          Update Password
+        </button>
+      </form>
+    </div>
+
+    <!-- Notification Preferences -->
+    <div class="card-custom">
+      <h5 class="fw-bold mb-3"><i class="bi bi-bell text-warning me-2"></i>Learning Preferences</h5>
+      
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="emailNotifSwitch" checked>
+        <label class="form-check-label small" for="emailNotifSwitch">Daily practice reminders</label>
+      </div>
+
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="weeklyReportSwitch" checked>
+        <label class="form-check-label small" for="weeklyReportSwitch">Weekly AI progress report</label>
+      </div>
+
+      <div class="form-check form-switch mb-4">
+        <input class="form-check-input" type="checkbox" id="adaptiveRecsSwitch" checked>
+        <label class="form-check-label small" for="adaptiveRecsSwitch">Automated ML cluster updates</label>
+      </div>
+
+      <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger w-100 btn-sm">
+        <i class="bi bi-box-arrow-right me-1"></i> Log Out from All Devices
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

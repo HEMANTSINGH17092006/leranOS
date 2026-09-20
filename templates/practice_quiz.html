@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Practice Quiz - LearnOS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h1 class="welcome-title">Practice Quiz Hub</h1>
+    <p class="welcome-subtitle">Sharpen your knowledge with adaptive assessments that power your AI profile.</p>
+  </div>
+</div>
+
+<!-- Subject Cards Grid -->
+<h5 class="fw-bold mb-3">Choose a Subject</h5>
+<div class="row g-3 mb-4">
+  {% for sub in subjects %}
+  <div class="col-12 col-md-6 col-xl">
+    <div class="card-custom h-100 p-3 d-flex flex-column justify-content-between hover-shadow transition">
+      <div>
+        <div class="avatar-circle mb-3" style="width: 44px; height: 44px; background: var(--primary-light); color: var(--primary); font-size: 1.25rem;">
+          <i class="bi {{ sub.icon }}"></i>
+        </div>
+        <h6 class="fw-bold text-dark mb-1">{{ sub.name }}</h6>
+        <p class="text-muted small mb-2" style="font-size: 0.78rem;">{{ sub.desc }}</p>
+      </div>
+      
+      <div>
+        <div class="d-flex justify-content-between align-items-center small text-muted mb-2" style="font-size: 0.72rem;">
+          <span>{{ sub.question_count }} Questions</span>
+          <span class="text-success fw-semibold">Adaptive</span>
+        </div>
+        <a href="{{ url_for('quiz.start', subject=sub.name) }}" class="btn btn-sm btn-primary-custom w-100 justify-content-center" style="font-size: 0.8rem;">
+          Start Quiz <i class="bi bi-play-fill ms-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Custom Quiz Configurator Card -->
+<div class="card-custom mb-4" style="background: linear-gradient(135deg, #f8fafc, #ffffff);">
+  <div class="row align-items-center g-4">
+    <div class="col-12 col-md-6">
+      <h5 class="fw-bold text-dark mb-1">Custom Mock Assessment</h5>
+      <p class="text-muted small mb-0">Select your preferred topic and difficulty level to test specific problem patterns.</p>
+    </div>
+    
+    <div class="col-12 col-md-6">
+      <form action="{{ url_for('quiz.start') }}" method="GET" class="row g-2">
+        <div class="col-6">
+          <select name="subject" class="form-select form-select-sm" style="border-radius: 8px;">
+            <option value="All" selected>All Subjects</option>
+            <option value="Python">Python</option>
+            <option value="Data Structures">Data Structures</option>
+            <option value="Algorithms">Algorithms</option>
+            <option value="Database">Database</option>
+            <option value="Web Development">Web Development</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <select name="difficulty" class="form-select form-select-sm" style="border-radius: 8px;">
+            <option value="All" selected>All Difficulties</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+        </div>
+        <div class="col-12 mt-2">
+          <button type="submit" class="btn btn-primary-custom w-100 py-2 justify-content-center">
+            <i class="bi bi-lightning-charge-fill me-1"></i> Start Targeted Assessment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Quiz Attempts Table -->
+<div class="card-custom">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold mb-0">Recent Quiz Attempts</h5>
+    <a href="{{ url_for('progress.index') }}" class="text-primary small fw-semibold text-decoration-none">
+      View All in Analytics <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+      <thead class="table-light">
+        <tr>
+          <th>Subject</th>
+          <th>Difficulty</th>
+          <th>Score</th>
+          <th>Accuracy</th>
+          <th>Time Taken</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for att in recent_attempts %}
+        <tr>
+          <td class="fw-semibold text-dark"><i class="bi bi-journal-code text-primary me-2"></i>{{ att.subject }}</td>
+          <td><span class="badge bg-light text-muted border small">{{ att.difficulty }}</span></td>
+          <td><span class="fw-bold {% if att.score >= 70 %}text-success{% elif att.score >= 50 %}text-warning{% else %}text-danger{% endif %}">{{ att.score }}%</span></td>
+          <td>{{ att.accuracy }}%</td>
+          <td>{{ att.time_taken_seconds }} sec</td>
+          <td class="text-muted small">{{ att.timestamp.strftime('%d %b %Y, %I:%M %p') if att.timestamp else '' }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-3">No quiz attempts recorded yet. Take your first quiz above!</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

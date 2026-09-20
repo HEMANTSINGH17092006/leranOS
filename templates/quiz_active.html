@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Live Assessment - LearnOS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-xl-9">
+    
+    <!-- Assessment Header Bar -->
+    <div class="card-custom mb-3 p-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge-custom badge-primary">{{ subject }}</span>
+        <span class="badge-custom badge-warning">{{ difficulty }}</span>
+        <span class="text-muted small">| <span id="currentQuestionNum">1</span> of {{ total_questions }} Questions</span>
+      </div>
+      
+      <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2 px-3 py-1 bg-light rounded-pill border fw-bold text-danger" id="timerBadge">
+          <i class="bi bi-stopwatch"></i>
+          <span id="countdownTimer">05:00</span>
+        </div>
+        <button class="btn btn-sm btn-outline-danger border-0" id="exitQuizBtn">
+          <i class="bi bi-x-circle"></i> Exit
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress mb-4" style="height: 6px; background-color: #e2e8f0; border-radius: 999px;">
+      <div class="progress-bar bg-primary" id="quizProgressBar" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+
+    <!-- Question Container Card -->
+    <div class="card-custom mb-4 p-4" id="quizContainer">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted small fw-semibold text-uppercase" id="questionTopicBadge">Functions & Scope</span>
+        <span class="badge bg-light text-muted border small" id="questionDiffBadge">Medium</span>
+      </div>
+      
+      <h5 class="fw-bold text-dark mb-4" id="questionText" style="line-height: 1.5; white-space: pre-wrap;">
+        Question loading...
+      </h5>
+
+      <!-- Options List -->
+      <div class="d-flex flex-column gap-2 mb-4" id="optionsContainer">
+        <!-- Dynamically rendered options -->
+      </div>
+
+      <!-- Footer Navigation Controls -->
+      <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+        <button class="btn btn-secondary-custom" id="prevQuestionBtn" disabled>
+          <i class="bi bi-arrow-left"></i> Previous
+        </button>
+        
+        <div class="d-flex gap-2">
+          <button class="btn btn-secondary-custom" id="nextQuestionBtn">
+            Next <i class="bi bi-arrow-right"></i>
+          </button>
+          <button class="btn btn-primary-custom d-none" id="submitQuizBtn">
+            <i class="bi bi-check2-circle"></i> Submit Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Quiz Result & ML Feedback Summary -->
+<div class="modal fade" id="quizResultModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+      <div class="modal-header border-bottom-0 pb-0">
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar-circle" style="width: 36px; height: 36px; background: var(--success-light); color: var(--success);">
+            <i class="bi bi-trophy"></i>
+          </div>
+          <h5 class="modal-title fw-bold text-dark">Assessment Results & AI Update</h5>
+        </div>
+      </div>
+      <div class="modal-body p-4">
+        
+        <!-- Score Highlights -->
+        <div class="row g-3 mb-4 text-center">
+          <div class="col-4">
+            <div class="p-3 bg-light rounded-3 border">
+              <div class="text-muted small fw-semibold text-uppercase">Score</div>
+              <h3 class="fw-bold text-primary mb-0" id="resScoreVal">80%</h3>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 bg-light rounded-3 border">
+              <div class="text-muted small fw-semibold text-uppercase">Accuracy</div>
+              <h3 class="fw-bold text-success mb-0" id="resAccuracyVal">80%</h3>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 bg-light rounded-3 border">
+              <div class="text-muted small fw-semibold text-uppercase">Correct / Total</div>
+              <h3 class="fw-bold text-dark mb-0" id="resCorrectRatio">4 / 5</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- ML Feedback Loop Alert -->
+        <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3" style="background: linear-gradient(135deg, #eff6ff, #eef2ff); border: 1px solid #bfdbfe;">
+          <div class="avatar-circle" style="width: 44px; height: 44px; background: #3b82f6; color: white; font-size: 1.25rem;">
+            <i class="bi bi-cpu"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-dark small">Machine Learning Pipeline Synced</div>
+            <div class="text-muted" style="font-size: 0.8rem;">
+              Your new attempt has been ingested. Updated Mastery Score: <strong class="text-primary" id="resNewMastery">--</strong> | Cluster: <strong class="text-dark" id="resNewCluster">--</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Question Review Accordion -->
+        <h6 class="fw-bold text-dark mb-2">Question Review & Explanations</h6>
+        <div class="accordion accordion-flush mb-3" id="reviewAccordion" style="max-height: 250px; overflow-y: auto;">
+          <!-- Injected via JavaScript -->
+        </div>
+
+        <!-- Bottom Action CTA Buttons -->
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary-custom">
+            Back to Dashboard
+          </a>
+          <a href="{{ url_for('recommendations.index') }}" class="btn btn-primary-custom">
+            View New Recommendations <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.quizData = {
+    subject: "{{ subject }}",
+    difficulty: "{{ difficulty }}",
+    questions: {{ questions_json | safe }},
+    durationMinutes: {{ duration_minutes }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+{% endblock %}

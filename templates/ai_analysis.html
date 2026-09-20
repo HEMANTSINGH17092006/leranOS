@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}AI Analysis - LearnOS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h1 class="welcome-title">AI Analysis</h1>
+    <p class="welcome-subtitle">Personalised insights powered by your learning data.</p>
+  </div>
+  <div class="d-flex align-items-center gap-3">
+    <div class="text-muted small d-none d-sm-block">
+      <i class="bi bi-calendar-event me-1"></i> Last updated: <span id="lastUpdatedTimestamp">{{ last_updated }}</span>
+    </div>
+    <button class="btn btn-secondary-custom" id="refreshAnalysisBtn">
+      <i class="bi bi-arrow-clockwise"></i> Refresh Analysis
+    </button>
+  </div>
+</div>
+
+<!-- Top Section: 3 Overview Cards (Matching PDF Page 4) -->
+<div class="row g-3 mb-4">
+  
+  <!-- Overall Learning Level -->
+  <div class="col-12 col-md-4">
+    <div class="card-custom h-100 d-flex flex-column justify-content-between">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="avatar-circle" style="width: 36px; height: 36px; background: var(--purple-light); color: var(--purple);">
+            <i class="bi bi-mortarboard"></i>
+          </div>
+          <span class="text-muted small fw-semibold text-uppercase">Overall Learning Level</span>
+        </div>
+        <h4 class="fw-bold text-dark mb-1" id="learningLevelHeading">{{ learning_level }}</h4>
+        <p class="text-muted small mb-0">You are on a good path! With consistent practice, you can reach the next level.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Confidence Score -->
+  <div class="col-12 col-md-4">
+    <div class="card-custom h-100 d-flex flex-column justify-content-between">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="avatar-circle" style="width: 36px; height: 36px; background: var(--success-light); color: var(--success);">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <span class="text-muted small fw-semibold text-uppercase">AI Confidence Score</span>
+        </div>
+        <h4 class="fw-bold text-success mb-1" id="confidenceScoreHeading">{{ confidence }}%</h4>
+        <p class="text-muted small mb-0">Our model is {{ confidence }}% confident about this analysis based on your recent learning data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assigned Cluster -->
+  <div class="col-12 col-md-4">
+    <div class="card-custom h-100 d-flex flex-column justify-content-between">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="avatar-circle" style="width: 36px; height: 36px; background: var(--primary-light); color: var(--primary);">
+            <i class="bi bi-diagram-3"></i>
+          </div>
+          <span class="text-muted small fw-semibold text-uppercase">Assigned Cluster</span>
+        </div>
+        <h4 class="fw-bold text-primary mb-1" id="clusterHeading">Cluster {{ cluster_id }}</h4>
+        <div class="text-dark small fw-semibold mb-2" id="clusterLabelSub">{{ cluster_label }}</div>
+        
+        <div class="d-flex align-items-center gap-2 small text-muted" style="font-size: 0.72rem;">
+          <span class="badge rounded-pill bg-primary" style="font-size: 0.65rem;">• Cluster 0</span>
+          <span class="badge rounded-pill bg-info" style="font-size: 0.65rem;">• Cluster 1</span>
+          <span class="text-success fw-bold ms-auto">● Your Position</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Key Learning Metrics Analysis (4 Horizontal Cards) -->
+<h5 class="fw-bold mb-3">Key Learning Metrics Analysis</h5>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="text-muted small">Quiz Accuracy</span>
+        <i class="bi bi-check-circle text-success"></i>
+      </div>
+      <h3 class="fw-bold mb-1" id="metricAccuracy">{{ quiz_accuracy }}%</h3>
+      <div class="text-success small fw-semibold">↑ +8% <span class="text-muted fw-normal" style="font-size: 0.7rem;">vs last month</span></div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="text-muted small">Avg. Time per Question</span>
+        <i class="bi bi-clock-history text-warning"></i>
+      </div>
+      <h3 class="fw-bold mb-1" id="metricAvgTime">{{ avg_time }} sec</h3>
+      <div class="text-danger small fw-semibold">↑ 10% <span class="text-muted fw-normal" style="font-size: 0.7rem;">vs optimal pace</span></div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="text-muted small">Total Attempts</span>
+        <i class="bi bi-card-checklist text-primary"></i>
+      </div>
+      <h3 class="fw-bold mb-1" id="metricAttempts">{{ attempts_count }}</h3>
+      <div class="text-success small fw-semibold">↑ +2 <span class="text-muted fw-normal" style="font-size: 0.7rem;">vs last month</span></div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="text-muted small">Study Time</span>
+        <i class="bi bi-hourglass-split text-purple"></i>
+      </div>
+      <h3 class="fw-bold mb-1" id="metricStudyTime">{{ study_time }} hrs</h3>
+      <div class="text-success small fw-semibold">↑ +3.1 hrs <span class="text-muted fw-normal" style="font-size: 0.7rem;">vs last month</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Middle 3-Column Section (Subject Comparison, Strengths/Weaknesses, Behaviour) -->
+<div class="row g-4 mb-4">
+  
+  <!-- Subject-wise Performance Analysis (Dual Bars) -->
+  <div class="col-12 col-lg-5">
+    <div class="card-custom h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Subject-wise Performance Analysis</h5>
+      </div>
+      
+      <div class="d-flex align-items-center gap-3 mb-3 small">
+        <span class="d-flex align-items-center gap-1"><span style="width: 10px; height: 10px; background: #3b82f6; border-radius: 2px; display: inline-block;"></span> Your Score</span>
+        <span class="d-flex align-items-center gap-1"><span style="width: 10px; height: 10px; background: #cbd5e1; border-radius: 2px; display: inline-block;"></span> Class Average</span>
+      </div>
+
+      <div class="d-flex flex-column gap-3" id="subjectComparisonContainer">
+        {% for comp in subject_comparison %}
+        <div>
+          <div class="d-flex justify-content-between small fw-semibold mb-1">
+            <span>{{ comp.subject }}</span>
+            <span><strong class="text-primary">{{ comp.user_score }}%</strong> / <span class="text-muted">{{ comp.class_avg }}%</span></span>
+          </div>
+          <div class="progress mb-1" style="height: 6px; background-color: #f1f5f9;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ comp.user_score }}%;" aria-valuenow="{{ comp.user_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div class="progress" style="height: 4px; background-color: #f1f5f9;">
+            <div class="progress-bar bg-secondary opacity-50" role="progressbar" style="width: {{ comp.class_avg }}%;" aria-valuenow="{{ comp.class_avg }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Strengths & Areas to Improve -->
+  <div class="col-12 col-lg-4">
+    <div class="card-custom h-100">
+      <h5 class="fw-bold mb-3">Strengths & Areas to Improve</h5>
+      
+      <!-- Strengths -->
+      <div class="mb-3">
+        <div class="d-flex align-items-center gap-2 mb-2 text-success small fw-bold">
+          <i class="bi bi-check-circle-fill"></i> Your Strengths
+        </div>
+        <ul class="list-unstyled mb-0 small" id="strengthsList" style="line-height: 1.8;">
+          {% for st in strengths %}
+          <li class="d-flex align-items-start gap-2 text-muted">
+            <i class="bi bi-check2 text-success mt-1"></i>
+            <span>{{ st }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      
+      <hr class="my-2">
+      
+      <!-- Areas to Improve -->
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2 text-danger small fw-bold">
+          <i class="bi bi-exclamation-triangle-fill"></i> Areas to Improve
+        </div>
+        <ul class="list-unstyled mb-0 small" id="weakAreasList" style="line-height: 1.8;">
+          {% for wk in weak_areas %}
+          <li class="d-flex align-items-start gap-2 text-muted">
+            <i class="bi bi-dot text-danger mt-1 fs-5"></i>
+            <span>{{ wk }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learning Behaviour Analysis -->
+  <div class="col-12 col-lg-3">
+    <div class="card-custom h-100 d-flex flex-column justify-content-between">
+      <div>
+        <h5 class="fw-bold mb-3">Learning Behaviour</h5>
+        
+        <div class="d-flex flex-column gap-3 mb-3" id="behaviourContainer">
+          <div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted"><i class="bi bi-calendar-check me-1 text-primary"></i> Consistency</span>
+              <span class="fw-bold text-dark">{{ behaviour.consistency }}%</span>
+            </div>
+            <div class="progress" style="height: 6px; background-color: #f1f5f9;">
+              <div class="progress-bar bg-success" style="width: {{ behaviour.consistency }}%;"></div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted"><i class="bi bi-lightbulb me-1 text-warning"></i> Concept Understanding</span>
+              <span class="fw-bold text-dark">{{ behaviour.concept_understanding }}%</span>
+            </div>
+            <div class="progress" style="height: 6px; background-color: #f1f5f9;">
+              <div class="progress-bar bg-primary" style="width: {{ behaviour.concept_understanding }}%;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted"><i class="bi bi-puzzle me-1 text-info"></i> Problem Solving</span>
+              <span class="fw-bold text-dark">{{ behaviour.problem_solving }}%</span>
+            </div>
+            <div class="progress" style="height: 6px; background-color: #f1f5f9;">
+              <div class="progress-bar bg-info" style="width: {{ behaviour.problem_solving }}%;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span class="text-muted"><i class="bi bi-stopwatch me-1 text-danger"></i> Time Management</span>
+              <span class="fw-bold text-dark">{{ behaviour.time_management }}%</span>
+            </div>
+            <div class="progress" style="height: 6px; background-color: #f1f5f9;">
+              <div class="progress-bar bg-warning" style="width: {{ behaviour.time_management }}%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- AI Suggestion Box -->
+      <div class="p-3 bg-light rounded-3 border">
+        <div class="d-flex align-items-center gap-2 mb-1 text-primary fw-bold small">
+          <i class="bi bi-chat-quote-fill"></i> AI Suggestion
+        </div>
+        <p class="text-muted small mb-0" id="aiSuggestionText" style="font-size: 0.78rem; line-height: 1.4;">
+          {{ ai_suggestion }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dynamic AI Insights List -->
+<div class="card-custom mb-4">
+  <h5 class="fw-bold mb-3">AI Insights</h5>
+  <div class="d-flex flex-column gap-2" id="aiInsightsContainer">
+    {% for ins in insights %}
+    <div class="insight-item mb-0">
+      <div class="insight-icon-box {% if ins.type == 'positive' %}insight-icon-positive{% elif ins.type == 'warning' %}insight-icon-warning{% else %}insight-icon-info{% endif %}">
+        <i class="bi {{ ins.icon }}"></i>
+      </div>
+      <div class="insight-text">{{ ins.text }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Bottom Banner (Matching PDF Page 4) -->
+<div class="card-custom p-3 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: linear-gradient(135deg, #fefce8, #fef9c3); border: 1px solid #fef08a;">
+  <div class="d-flex align-items-center gap-3">
+    <span style="font-size: 1.5rem;">🏆</span>
+    <div>
+      <div class="fw-bold text-dark">Keep Going, {{ user.name.split(' ')[0] }}!</div>
+      <div class="text-muted small">Your dedication is visible in your progress. Follow the recommendations to unlock your full potential.</div>
+    </div>
+  </div>
+  <a href="{{ url_for('recommendations.index') }}" class="btn btn-primary-custom">
+    View Recommendations <i class="bi bi-arrow-right ms-1"></i>
+  </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/analysis.js') }}"></script>
+{% endblock %}

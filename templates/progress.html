@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Progress & Analytics - LearnOS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h1 class="welcome-title">Progress & Analytics</h1>
+    <p class="welcome-subtitle">Comprehensive longitudinal tracking of your mastery and learning trends.</p>
+  </div>
+  <a href="{{ url_for('quiz.index') }}" class="btn btn-primary-custom">
+    <i class="bi bi-play-circle"></i> New Quiz Attempt
+  </a>
+</div>
+
+<!-- 4 Key Summary Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3">
+      <div class="text-muted small fw-semibold text-uppercase mb-1">Mastery Score</div>
+      <h3 class="fw-bold text-primary mb-1">{{ mastery_score }}%</h3>
+      <div class="text-muted small">Cumulative performance</div>
+    </div>
+  </div>
+  
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3">
+      <div class="text-muted small fw-semibold text-uppercase mb-1">Quiz Accuracy</div>
+      <h3 class="fw-bold text-info mb-1">{{ quiz_acc }}%</h3>
+      <div class="text-muted small">Overall correct ratio</div>
+    </div>
+  </div>
+  
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3">
+      <div class="text-muted small fw-semibold text-uppercase mb-1">Total Study Time</div>
+      <h3 class="fw-bold text-purple mb-1">{{ total_study_time }} hrs</h3>
+      <div class="text-muted small">Logged platform time</div>
+    </div>
+  </div>
+  
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3">
+      <div class="text-muted small fw-semibold text-uppercase mb-1">Total Attempts</div>
+      <h3 class="fw-bold text-dark mb-1">{{ total_attempts }}</h3>
+      <div class="text-muted small">Completed assessments</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="row g-4 mb-4">
+  
+  <!-- Score & Accuracy Trend Line Chart -->
+  <div class="col-12 col-lg-8">
+    <div class="card-custom h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Score & Accuracy Trend</h5>
+        <span class="badge-custom badge-primary">Historical Attempts</span>
+      </div>
+      <div style="height: 280px; position: relative;">
+        <canvas id="progressTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subject Radar / Distribution Chart -->
+  <div class="col-12 col-lg-4">
+    <div class="card-custom h-100">
+      <h5 class="fw-bold mb-3">Subject Proficiency Radar</h5>
+      <div style="height: 280px; position: relative;">
+        <canvas id="subjectRadarChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Historical Attempts Table -->
+<div class="card-custom">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold mb-0">All Recorded Quiz Attempts</h5>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+      <thead class="table-light">
+        <tr>
+          <th>Attempt #</th>
+          <th>Subject</th>
+          <th>Difficulty</th>
+          <th>Questions</th>
+          <th>Score</th>
+          <th>Accuracy</th>
+          <th>Avg Time / Question</th>
+          <th>Date Recorded</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for att in attempts %}
+        <tr>
+          <td class="text-muted fw-bold">#{{ loop.revindex }}</td>
+          <td class="fw-semibold text-dark"><i class="bi bi-journal-code text-primary me-2"></i>{{ att.subject }}</td>
+          <td><span class="badge bg-light text-muted border small">{{ att.difficulty }}</span></td>
+          <td>{{ att.correct_answers }} / {{ att.total_questions }}</td>
+          <td><span class="fw-bold {% if att.score >= 70 %}text-success{% elif att.score >= 50 %}text-warning{% else %}text-danger{% endif %}">{{ att.score }}%</span></td>
+          <td>{{ att.accuracy }}%</td>
+          <td>{{ att.avg_time_per_question }} sec</td>
+          <td class="text-muted small">{{ att.timestamp.strftime('%d %b %Y, %I:%M %p') if att.timestamp else '' }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">No attempts recorded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.progressData = {
+    dates: {{ dates_json | safe }},
+    scores: {{ scores_json | safe }},
+    accuracies: {{ accuracies_json | safe }},
+    avgTimes: {{ avg_times_json | safe }},
+    subjectScores: {{ subject_scores_json | safe }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/progress.js') }}"></script>
+{% endblock %}

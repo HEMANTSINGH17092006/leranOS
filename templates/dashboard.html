@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - LearnOS{% endblock %}
+
+{% block content %}
+<div class="welcome-banner d-flex justify-content-between align-items-center flex-wrap gap-2">
+  <div>
+    <h1 class="welcome-title">Welcome back, {{ user.name.split(' ')[0] }}! 👋</h1>
+    <p class="welcome-subtitle">Here's your personalised learning overview based on your recent performance.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('quiz.index') }}" class="btn btn-primary-custom">
+      <i class="bi bi-play-circle-fill"></i> Take a Quiz
+    </a>
+  </div>
+</div>
+
+<!-- 4 Key Metric Cards (Matching PDF Page 2) -->
+<div class="row g-3 mb-4">
+  <!-- Mastery Score -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-info">
+        <h6>Mastery Score</h6>
+        <div class="metric-value">{{ mastery_score }}%</div>
+        <div class="metric-delta delta-up">
+          <i class="bi bi-arrow-up-short"></i> +{{ score_delta }}% from baseline
+        </div>
+      </div>
+      <div class="progress-ring-container">
+        <svg width="64" height="64">
+          <circle class="progress-ring-bg" stroke-width="6" fill="transparent" r="26" cx="32" cy="32"/>
+          <circle class="progress-ring-val" stroke="var(--primary)" stroke-width="6" fill="transparent" r="26" cx="32" cy="32"
+                  stroke-dasharray="163.36" stroke-dashoffset="{{ 163.36 - (163.36 * mastery_score / 100) }}"/>
+        </svg>
+        <div class="progress-ring-text">{{ mastery_score | int }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Accuracy -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-info">
+        <h6>Quiz Accuracy</h6>
+        <div class="metric-value">{{ quiz_accuracy }}%</div>
+        <div class="metric-delta delta-up">
+          <i class="bi bi-arrow-up-short"></i> +8% from last month
+        </div>
+      </div>
+      <div class="progress-ring-container">
+        <svg width="64" height="64">
+          <circle class="progress-ring-bg" stroke-width="6" fill="transparent" r="26" cx="32" cy="32"/>
+          <circle class="progress-ring-val" stroke="var(--info)" stroke-width="6" fill="transparent" r="26" cx="32" cy="32"
+                  stroke-dasharray="163.36" stroke-dashoffset="{{ 163.36 - (163.36 * quiz_accuracy / 100) }}"/>
+        </svg>
+        <div class="progress-ring-text text-info">{{ quiz_accuracy | int }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Study Time -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-info">
+        <h6>Study Time</h6>
+        <div class="metric-value">{{ total_study_time }} hrs</div>
+        <div class="metric-delta delta-up">
+          <i class="bi bi-arrow-up-short"></i> +3.1 hrs from last month
+        </div>
+      </div>
+      <div class="avatar-circle" style="width: 52px; height: 52px; background: var(--purple-light); color: var(--purple); font-size: 1.4rem;">
+        <i class="bi bi-clock-history"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Attempts -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-info">
+        <h6>Total Attempts</h6>
+        <div class="metric-value">{{ total_attempts }}</div>
+        <div class="metric-delta delta-up">
+          <i class="bi bi-arrow-up-short"></i> +2 from last month
+        </div>
+      </div>
+      <div class="avatar-circle" style="width: 52px; height: 52px; background: var(--danger-light); color: var(--danger); font-size: 1.4rem;">
+        <i class="bi bi-bar-chart-fill"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main 2-Column Grid -->
+<div class="row g-4">
+  
+  <!-- Left Column: Profile Card & Recommendations -->
+  <div class="col-12 col-lg-6">
+    
+    <!-- Your Learning Profile Card -->
+    <div class="card-custom mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Your Learning Profile</h5>
+        <a href="{{ url_for('profile.index') }}" class="text-primary small fw-semibold text-decoration-none">
+          View Details <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+      
+      <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-3">
+        <div class="avatar-circle" style="width: 48px; height: 48px; font-size: 1.25rem;">
+          {{ user.name[0] | upper }}
+        </div>
+        <div>
+          <div class="fw-bold">{{ user.name }}</div>
+          <div class="text-muted small">{{ profile.degree if profile else 'B.Tech CSE' }} • {{ profile.year if profile else '2nd Year' }}</div>
+        </div>
+        <span class="badge-custom badge-warning ms-auto">
+          {{ learning_level }}
+        </span>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table table-borderless table-sm mb-0" style="font-size: 0.88rem;">
+          <tbody>
+            <tr>
+              <td class="text-muted py-2"><i class="bi bi-person-badge me-2"></i>Student ID</td>
+              <td class="fw-bold py-2 text-end">{{ profile.student_id_code if profile else 'STU00001' }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted py-2"><i class="bi bi-diagram-2 me-2"></i>Cluster</td>
+              <td class="fw-semibold text-primary py-2 text-end">Cluster {{ cluster_id }} ({{ cluster_label }})</td>
+            </tr>
+            <tr>
+              <td class="text-muted py-2"><i class="bi bi-journal-text me-2"></i>Total Quizzes</td>
+              <td class="fw-semibold py-2 text-end">{{ total_attempts }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted py-2"><i class="bi bi-stopwatch me-2"></i>Average Time per Question</td>
+              <td class="fw-semibold py-2 text-end">{{ avg_time }} sec</td>
+            </tr>
+            <tr>
+              <td class="text-muted py-2"><i class="bi bi-arrow-left-right me-2"></i>Previous Score</td>
+              <td class="fw-semibold text-muted py-2 text-end">{{ prev_score }}%</td>
+            </tr>
+            <tr>
+              <td class="text-muted py-2"><i class="bi bi-trophy me-2"></i>Current Mastery Score</td>
+              <td class="fw-bold text-success py-2 text-end">{{ mastery_score }}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Recommended for You Card -->
+    <div class="card-custom">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Recommended for You</h5>
+        <a href="{{ url_for('recommendations.index') }}" class="text-primary small fw-semibold text-decoration-none">
+          View All <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+      
+      {% for rec in recommendations %}
+      <div class="p-3 border rounded-3 mb-2 d-flex align-items-center justify-content-between gap-3 bg-white hover-shadow transition">
+        <div class="d-flex align-items-center gap-3">
+          <div class="avatar-circle" style="width: 40px; height: 40px; background: {% if loop.first %}var(--danger-light); color: var(--danger);{% elif loop.index == 2 %}var(--primary-light); color: var(--primary);{% else %}var(--purple-light); color: var(--purple);{% endif %} font-size: 1.1rem;">
+            <i class="bi {% if loop.first %}bi-book{% elif loop.index == 2 %}bi-lightning{% else %}bi-award{% endif %}"></i>
+          </div>
+          <div>
+            <div class="fw-bold text-dark small mb-1">{{ rec.title }}</div>
+            <div class="text-muted" style="font-size: 0.78rem;">{{ rec.description }}</div>
+          </div>
+        </div>
+        <a href="{{ rec.action_url }}" class="btn btn-sm {% if loop.first %}btn-primary-custom{% else %}btn-secondary-custom{% endif %} text-nowrap" style="font-size: 0.78rem; padding: 0.35rem 0.8rem;">
+          {{ rec.action_text }}
+        </a>
+      </div>
+      {% endfor %}
+      
+      <!-- Keep Going Banner -->
+      <div class="mt-3 p-3 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: linear-gradient(135deg, #fef3c7, #fffbeb); border: 1px solid #fde68a;">
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size: 1.3rem;">🏆</span>
+          <div>
+            <div class="fw-bold text-dark" style="font-size: 0.88rem;">Keep Going!</div>
+            <div class="text-muted" style="font-size: 0.78rem;">You've improved by {{ score_delta }} points since your baseline. Consistency leads to mastery!</div>
+          </div>
+        </div>
+        <a href="{{ url_for('quiz.index') }}" class="btn btn-sm btn-primary-custom" style="font-size: 0.78rem;">
+          Take a Quiz <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Right Column: AI Analysis & Progress Chart -->
+  <div class="col-12 col-lg-6">
+    
+    <!-- AI Analysis & Insights Card -->
+    <div class="card-custom mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar-circle" style="width: 32px; height: 32px; background: var(--purple-light); color: var(--purple);">
+            <i class="bi bi-cpu"></i>
+          </div>
+          <h5 class="fw-bold mb-0">AI Analysis & Insights</h5>
+        </div>
+        <a href="{{ url_for('analysis.index') }}" class="text-primary small fw-semibold text-decoration-none">
+          Full Report <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+      
+      <!-- Dynamic Insights List -->
+      {% for ins in insights %}
+      <div class="insight-item">
+        <div class="insight-icon-box {% if ins.type == 'positive' %}insight-icon-positive{% elif ins.type == 'warning' %}insight-icon-warning{% else %}insight-icon-info{% endif %}">
+          <i class="bi {{ ins.icon }}"></i>
+        </div>
+        <div class="insight-text">{{ ins.text }}</div>
+      </div>
+      {% endfor %}
+      
+      <!-- Focus Areas -->
+      <div class="mt-3 p-3 bg-light rounded-3">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <i class="bi bi-bullseye text-danger"></i>
+          <span class="fw-bold small text-dark">Focus Areas</span>
+        </div>
+        <ul class="mb-0 ps-3 text-muted small" style="line-height: 1.6;">
+          {% for weak in weak_areas %}
+          <li>{{ weak }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Your Progress Chart Card -->
+    <div class="card-custom">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Your Progress</h5>
+        <span class="badge-custom badge-primary small">Last Quiz Attempts</span>
+      </div>
+      
+      <div style="height: 250px; position: relative;">
+        <canvas id="dashboardProgressChart"></canvas>
+      </div>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.dashboardData = {
+    labels: {{ chart_labels | safe }},
+    scores: {{ chart_scores | safe }},
+    accuracies: {{ chart_accuracies | safe }}
+  };
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

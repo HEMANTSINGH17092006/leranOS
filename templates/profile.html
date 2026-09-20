@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - LearnOS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div>
+    <h1 class="welcome-title">My Profile</h1>
+    <p class="welcome-subtitle">Your learning journey, your progress, your future.</p>
+  </div>
+  <div>
+    <a href="{{ url_for('settings.index') }}" class="btn btn-secondary-custom">
+      <i class="bi bi-pencil-square"></i> Edit Profile
+    </a>
+  </div>
+</div>
+
+<!-- Profile Header Banner (Matching PDF Page 3) -->
+<div class="card-custom mb-4">
+  <div class="row align-items-center g-4">
+    <div class="col-12 col-md-6 col-lg-5">
+      <div class="d-flex align-items-center gap-3">
+        <div class="avatar-circle" style="width: 72px; height: 72px; font-size: 2rem; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);">
+          {{ user.name[0] | upper }}
+        </div>
+        <div>
+          <h4 class="fw-bold mb-1">{{ user.name }}</h4>
+          <div class="text-muted small mb-1">{{ profile.student_id_code if profile else 'STU00001' }}</div>
+          <div class="text-muted small mb-2">{{ profile.degree if profile else 'B.Tech CSE' }} | {{ profile.year if profile else '2nd Year' }}</div>
+          <span class="badge-custom badge-warning">{{ learning_level }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-12 col-md-6 col-lg-3 border-start-lg">
+      <div class="d-flex flex-column gap-2 text-muted small">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-envelope text-primary"></i>
+          <span>{{ user.email }}</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-calendar3 text-primary"></i>
+          <span>Joined On: {{ profile.created_at.strftime('%d %b %Y') if (profile and profile.created_at) else '15 Aug 2025' }}</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-fire text-danger"></i>
+          <span class="fw-bold text-dark">Learning Streak: {{ profile.learning_streak if profile else 12 }} days 🔥</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-12 col-lg-4">
+      <div class="p-3 bg-light rounded-3 border">
+        <div class="d-flex gap-2">
+          <i class="bi bi-quote text-primary" style="font-size: 1.5rem; line-height: 1;"></i>
+          <div>
+            <div class="fst-italic text-dark small mb-1">"Small progress each day leads to big results."</div>
+            <div class="text-muted" style="font-size: 0.75rem;">— LearnOS Insights</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Performance Overview (5 Horizontal Metric Cards) -->
+<h5 class="fw-bold mb-3">Performance Overview</h5>
+<div class="row g-3 mb-4">
+  <!-- Mastery Score -->
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card-custom p-3 text-center h-100">
+      <div class="text-muted small fw-semibold text-uppercase mb-2">Mastery Score</div>
+      <div class="progress-ring-container mx-auto mb-2" style="width: 52px; height: 52px;">
+        <svg width="52" height="52">
+          <circle class="progress-ring-bg" stroke-width="5" fill="transparent" r="21" cx="26" cy="26"/>
+          <circle class="progress-ring-val" stroke="var(--primary)" stroke-width="5" fill="transparent" r="21" cx="26" cy="26"
+                  stroke-dasharray="131.95" stroke-dashoffset="{{ 131.95 - (131.95 * mastery_score / 100) }}"/>
+        </svg>
+        <div class="progress-ring-text" style="font-size: 0.75rem;">{{ mastery_score | int }}%</div>
+      </div>
+      <div class="fw-bold text-dark" style="font-size: 1.1rem;">{{ mastery_score }}</div>
+      <div class="text-success small fw-semibold">↑ +12% <span class="text-muted fw-normal" style="font-size: 0.7rem;">from baseline</span></div>
+    </div>
+  </div>
+
+  <!-- Quiz Accuracy -->
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card-custom p-3 text-center h-100">
+      <div class="text-muted small fw-semibold text-uppercase mb-2">Quiz Accuracy</div>
+      <div class="progress-ring-container mx-auto mb-2" style="width: 52px; height: 52px;">
+        <svg width="52" height="52">
+          <circle class="progress-ring-bg" stroke-width="5" fill="transparent" r="21" cx="26" cy="26"/>
+          <circle class="progress-ring-val" stroke="var(--info)" stroke-width="5" fill="transparent" r="21" cx="26" cy="26"
+                  stroke-dasharray="131.95" stroke-dashoffset="{{ 131.95 - (131.95 * quiz_accuracy / 100) }}"/>
+        </svg>
+        <div class="progress-ring-text text-info" style="font-size: 0.75rem;">{{ quiz_accuracy | int }}%</div>
+      </div>
+      <div class="fw-bold text-dark" style="font-size: 1.1rem;">{{ quiz_accuracy }}%</div>
+      <div class="text-success small fw-semibold">↑ +8% <span class="text-muted fw-normal" style="font-size: 0.7rem;">from last month</span></div>
+    </div>
+  </div>
+
+  <!-- Average Time -->
+  <div class="col-6 col-md-4 col-xl">
+    <div class="card-custom p-3 text-center h-100">
+      <div class="text-muted small fw-semibold text-uppercase mb-2">Average Time</div>
+      <div class="avatar-circle mx-auto mb-2" style="width: 52px; height: 52px; background: var(--warning-light); color: var(--warning); font-size: 1.25rem;">
+        <i class="bi bi-stopwatch"></i>
+      </div>
+      <div class="fw-bold text-dark" style="font-size: 1.1rem;">{{ avg_time }} sec</div>
+      <div class="text-success small fw-semibold">↓ 10% <span class="text-muted fw-normal" style="font-size: 0.7rem;">faster speed</span></div>
+    </div>
+  </div>
+
+  <!-- Total Attempts -->
+  <div class="col-6 col-md-6 col-xl">
+    <div class="card-custom p-3 text-center h-100">
+      <div class="text-muted small fw-semibold text-uppercase mb-2">Total Attempts</div>
+      <div class="avatar-circle mx-auto mb-2" style="width: 52px; height: 52px; background: var(--danger-light); color: var(--danger); font-size: 1.25rem;">
+        <i class="bi bi-bar-chart-line"></i>
+      </div>
+      <div class="fw-bold text-dark" style="font-size: 1.1rem;">{{ attempts_count }}</div>
+      <div class="text-success small fw-semibold">↑ +2 <span class="text-muted fw-normal" style="font-size: 0.7rem;">from last month</span></div>
+    </div>
+  </div>
+
+  <!-- Total Study Time -->
+  <div class="col-12 col-md-6 col-xl">
+    <div class="card-custom p-3 text-center h-100">
+      <div class="text-muted small fw-semibold text-uppercase mb-2">Total Study Time</div>
+      <div class="avatar-circle mx-auto mb-2" style="width: 52px; height: 52px; background: var(--purple-light); color: var(--purple); font-size: 1.25rem;">
+        <i class="bi bi-clock-history"></i>
+      </div>
+      <div class="fw-bold text-dark" style="font-size: 1.1rem;">{{ study_time }} hrs</div>
+      <div class="text-success small fw-semibold">↑ +3.1 hrs <span class="text-muted fw-normal" style="font-size: 0.7rem;">logged</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Lower 3-Section Grid (Detailed Profile, Subject Progress, Goals) -->
+<div class="row g-4 mb-4">
+  
+  <!-- Detailed Learning Profile -->
+  <div class="col-12 col-lg-4">
+    <div class="card-custom h-100">
+      <h5 class="fw-bold mb-3">Detailed Learning Profile</h5>
+      <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+        <tbody>
+          <tr>
+            <td class="text-muted py-2"><i class="bi bi-person me-2"></i>Student ID</td>
+            <td class="fw-bold text-end">{{ profile.student_id_code if profile else 'STU00001' }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-2"><i class="bi bi-award me-2"></i>Learning Level</td>
+            <td class="text-end"><span class="badge-custom badge-warning">{{ learning_level }}</span></td>
+          </tr>
+          <tr>
+            <td class="text-muted py-2"><i class="bi bi-diagram-3 me-2"></i>Cluster</td>
+            <td class="fw-semibold text-primary text-end">Cluster {{ cluster_id }} ({{ cluster_label }})</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-2"><i class="bi bi-check2-circle me-2"></i>Total Quizzes Attempted</td>
+            <td class="fw-semibold text-end">{{ attempts_count }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-2"><i class="bi bi-clock me-2"></i>Average Time per Question</td>
+            <td class="fw-semibold text-end">{{ avg_time }} sec</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-2"><i class="bi bi-arrow-counterclockwise me-2"></i>Previous Score</td>
+            <td class="text-muted text-end">{{ prev_score }}%</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-2"><i class="bi bi-speedometer2 me-2"></i>Current Score</td>
+            <td class="fw-bold text-success text-end">{{ mastery_score }}%</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-2"><i class="bi bi-heart me-2"></i>Preferred Subjects</td>
+            <td class="fw-semibold text-end text-truncate" style="max-width: 140px;">{{ preferred_subs }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted py-2"><i class="bi bi-exclamation-circle me-2"></i>Areas to Improve</td>
+            <td class="text-danger text-end fw-semibold">{{ areas_to_improve_str }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subject-wise Performance -->
+  <div class="col-12 col-lg-4">
+    <div class="card-custom h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Subject-wise Performance</h5>
+        <a href="{{ url_for('quiz.index') }}" class="text-primary small fw-semibold text-decoration-none">Practice</a>
+      </div>
+      
+      <div class="d-flex flex-column gap-3">
+        {% for s in subjects %}
+        <div>
+          <div class="d-flex justify-content-between align-items-center small mb-1">
+            <span class="fw-semibold text-dark">{{ s.name }}</span>
+            <span class="fw-bold text-muted">{{ s.score }}%</span>
+          </div>
+          <div class="progress" style="height: 8px; border-radius: 999px; background-color: #f1f5f9;">
+            <div class="progress-bar" role="progressbar" style="width: {{ s.score }}%; background-color: {{ s.color }}; border-radius: 999px;" aria-valuenow="{{ s.score }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Learning Goals -->
+  <div class="col-12 col-lg-4">
+    <div class="card-custom h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Learning Goals</h5>
+        <button class="btn btn-sm text-primary fw-semibold p-0 border-0 bg-transparent" data-bs-toggle="modal" data-bs-target="#newGoalModal">
+          Set New Goal
+        </button>
+      </div>
+      
+      <div class="d-flex flex-column gap-2" id="goalsListContainer">
+        {% for g in goals %}
+        <div class="p-2 border rounded-3 d-flex align-items-center justify-content-between gap-2 bg-light goal-item" data-goal-id="{{ g.id }}">
+          <div class="d-flex align-items-center gap-2">
+            <input class="form-check-input mt-0 goal-checkbox" type="checkbox" {% if g.is_completed %}checked{% endif %} data-id="{{ g.id }}" style="cursor: pointer;">
+            <div>
+              <div class="fw-semibold small text-dark {% if g.is_completed %}text-decoration-line-through text-muted{% endif %} goal-title-text">{{ g.title }}</div>
+              <div class="text-muted" style="font-size: 0.72rem;">{{ g.target_date }}</div>
+            </div>
+          </div>
+          <button class="btn btn-sm text-danger delete-goal-btn p-1 border-0 bg-transparent" data-id="{{ g.id }}" title="Delete Goal">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+        {% else %}
+        <div class="text-muted text-center py-4 small">No active goals. Click "Set New Goal" to add one!</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Banner & Actions (Matching PDF Page 3) -->
+<div class="card-custom p-3 d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 1px solid #bbf7d0;">
+  <div class="d-flex align-items-center gap-3">
+    <span style="font-size: 1.5rem;">🌟</span>
+    <div>
+      <div class="fw-bold text-dark">You're making good progress!</div>
+      <div class="text-muted small">Keep learning consistently to move to the next level.</div>
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('recommendations.index') }}" class="btn btn-secondary-custom">
+      View Recommendations
+    </a>
+    <a href="{{ url_for('quiz.index') }}" class="btn btn-primary-custom">
+      Take a Quiz <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+</div>
+
+<!-- New Goal Modal -->
+<div class="modal fade" id="newGoalModal" tabindex="-1" aria-labelledby="newGoalModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold" id="newGoalModalLabel">Create Learning Goal</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="newGoalForm">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Goal Title</label>
+            <input type="text" class="form-control" id="goalTitleInput" placeholder="e.g. Master Binary Search Trees" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Description / Notes (Optional)</label>
+            <input type="text" class="form-control" id="goalDescInput" placeholder="e.g. Practice 15 medium questions">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Target Timeframe</label>
+            <input type="text" class="form-control" id="goalTargetDateInput" placeholder="e.g. Target: Next 2 weeks" value="Target: Next 2 weeks">
+          </div>
+          <button type="submit" class="btn btn-primary-custom w-100 py-2">Save Goal</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}
