@@ -12,13 +12,21 @@ IS_SERVERLESS = bool(
     os.environ.get("VERCEL") 
     or os.environ.get("AWS_LAMBDA_FUNCTION_NAME") 
     or os.environ.get("LAMBDA_TASK_ROOT")
+    or os.environ.get("VERCEL_ENV")
+    or os.environ.get("NOW_REGION")
 )
 
-# On serverless platforms (Vercel), writable storage is in system temp directory
-if IS_SERVERLESS:
-    INSTANCE_DIR = (Path(tempfile.gettempdir()) / "learnos_instance").resolve()
-else:
-    INSTANCE_DIR = (BASE_DIR / "instance").resolve()
+def _get_instance_dir():
+    if IS_SERVERLESS:
+        return (Path(tempfile.gettempdir()) / "learnos_instance").resolve()
+    local_inst = (BASE_DIR / "instance").resolve()
+    try:
+        local_inst.mkdir(parents=True, exist_ok=True)
+        return local_inst
+    except (OSError, PermissionError):
+        return (Path(tempfile.gettempdir()) / "learnos_instance").resolve()
+
+INSTANCE_DIR = _get_instance_dir()
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "learnos-super-secret-key-2026-prod-secure")
