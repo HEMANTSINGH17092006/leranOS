@@ -3,8 +3,19 @@ from pathlib import Path
 from flask import Flask, render_template, session
 from config import Config
 from database import db, init_db
-from database.models import User
+from database.models import User, QuizQuestion
 from routes import register_blueprints
+
+def _check_and_seed_db(app):
+    with app.app_context():
+        try:
+            if not QuizQuestion.query.first():
+                from database.seed import seed_database
+                print("[LearnOS] First boot / Empty database detected. Seeding default data...")
+                seed_database()
+                print("[LearnOS] Seeding completed.")
+        except Exception as e:
+            print(f"[LearnOS] Seeding check notice: {e}")
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -18,6 +29,8 @@ def create_app(config_class=Config):
     
     with app.app_context():
         db.create_all()
+        
+    _check_and_seed_db(app)
         
     # Register Blueprints
     register_blueprints(app)

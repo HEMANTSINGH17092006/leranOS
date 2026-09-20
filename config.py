@@ -7,9 +7,13 @@ load_dotenv(BASE_DIR / ".env")
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "learnos-super-secret-key-2026-prod-secure")
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
+    _db_url = os.environ.get(
         "DATABASE_URL", f"sqlite:///{BASE_DIR / 'instance' / 'learning.db'}"
     )
+    if _db_url and _db_url.startswith("postgres://"):
+        _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+        
+    SQLALCHEMY_DATABASE_URI = _db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # ML Models and Data paths
