@@ -3,10 +3,6 @@ import json
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-import joblib
 
 from ml.preprocessing import FEATURE_COLUMNS
 
@@ -14,6 +10,9 @@ def evaluate_k_candidates(X_scaled, k_range=[2, 3, 4, 5], random_state=42):
     """
     Evaluates KMeans clustering across multiple K values using Inertia and Silhouette Score.
     """
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_score
+    
     results = {}
     best_k = k_range[0]
     best_silhouette = -1.0
@@ -100,6 +99,9 @@ def train_and_save_pipeline(profile_df, models_dir, k_range=[2, 3, 4, 5]):
     5. Interprets clusters
     6. Saves scaler, model and metadata
     """
+    from sklearn.preprocessing import StandardScaler
+    import joblib
+    
     os.makedirs(models_dir, exist_ok=True)
     models_dir = Path(models_dir)
     
@@ -129,7 +131,10 @@ def train_and_save_pipeline(profile_df, models_dir, k_range=[2, 3, 4, 5]):
         "total_learners_trained": len(profile_df),
         "cluster_labels": cluster_labels,
         "cluster_details": cluster_details,
-        "feature_columns": FEATURE_COLUMNS
+        "feature_columns": FEATURE_COLUMNS,
+        "scaler_mean": scaler.mean_.tolist(),
+        "scaler_scale": scaler.scale_.tolist(),
+        "cluster_centers": kmeans.cluster_centers_.tolist()
     }
     
     try:
