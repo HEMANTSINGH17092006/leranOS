@@ -16,14 +16,17 @@ from routes import register_blueprints
 def _init_database_storage(app):
     with app.app_context():
         try:
-            # If database file doesn't exist in instance path, copy bundled starter database in 5ms
-            db_target = Path(app.config["INSTANCE_DIR"]) / "learning.db"
+            # Ensure instance directory exists in /tmp or local path
+            instance_dir = Path(app.config.get("INSTANCE_DIR", app.instance_path))
+            instance_dir.mkdir(parents=True, exist_ok=True)
+            
+            db_target = instance_dir / "learning.db"
             starter_db = Path(app.config["BASE_DIR"]) / "data" / "starter_learning.db"
             if not db_target.exists() and starter_db.exists():
                 import shutil
                 try:
                     shutil.copyfile(starter_db, db_target)
-                    print("[LearnOS] Bundled starter database loaded into temp instance storage.")
+                    print("[LearnOS] Bundled starter database loaded into instance storage.")
                 except Exception as ex:
                     print(f"[LearnOS] Starter DB copy notice: {ex}")
             
