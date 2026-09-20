@@ -20,11 +20,6 @@ if IS_SERVERLESS:
 else:
     INSTANCE_DIR = (BASE_DIR / "instance").resolve()
 
-try:
-    INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
-except Exception:
-    pass
-
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "learnos-super-secret-key-2026-prod-secure")
     _db_url = os.environ.get(

@@ -49,23 +49,23 @@ def create_app(config_class=Config):
     except Exception as e:
         print(f"[LearnOS] Instance directory notice: {e}")
     
-    # Initialize Database
+    # Initialize Database extension (lazy connection pool)
     db.init_app(app)
-    _init_database_storage(app)
         
     # Register Blueprints
     register_blueprints(app)
     
-    # Ensure database is present before handling any request (critical for serverless Lambda cold starts)
+    # Lazy database initialization on first request (prevents frozen file locks during serverless cold start)
+    _db_ready = False
     @app.before_request
     def ensure_db_ready():
-        try:
-            instance_dir = Path(app.config.get("INSTANCE_DIR", app.instance_path))
-            db_target = instance_dir / "learning.db"
-            if not db_target.exists():
+        nonlocal _db_ready
+        if not _db_ready:
+            try:
                 _init_database_storage(app)
-        except Exception:
-            pass
+                _db_ready = True
+            except Exception as ex:
+                print(f"[LearnOS] DB init error: {ex}")
             
     # Global context processors for templates
     @app.context_processor

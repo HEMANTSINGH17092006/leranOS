@@ -55,7 +55,7 @@
         <span>Recommendations</span>
       </a>
       
-      <a href="{{ url_for('quiz.index') }}" class="nav-link-item {% if 'quiz' in request.endpoint %}active{% endif %}">
+      <a href="{{ url_for('quiz.index') }}" class="nav-link-item {% if request.endpoint and 'quiz' in request.endpoint %}active{% endif %}">
         <i class="bi bi-pencil-square"></i>
         <span>Practice Quiz</span>
       </a>
