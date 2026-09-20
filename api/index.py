@@ -9,5 +9,9 @@ if str(ROOT_DIR) not in sys.path:
 # Export pure Flask WSGI application for Vercel Python runtime
 from app import app
 
+# Alias entry points for serverless WSGI runners
+handler = app
+application = app
+
 
 
