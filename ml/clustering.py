@@ -2,7 +2,6 @@ import os
 import json
 from pathlib import Path
 import numpy as np
-import pandas as pd
 
 from ml.preprocessing import FEATURE_COLUMNS
 
@@ -42,6 +41,7 @@ def interpret_clusters(kmeans, scaler, feature_names):
     Interprets clusters based on actual centroid statistics in original feature space.
     Generates dynamic, meaningful cluster labels.
     """
+    import pandas as pd
     unscaled_centers = scaler.inverse_transform(kmeans.cluster_centers_)
     centers_df = pd.DataFrame(unscaled_centers, columns=feature_names)
     
