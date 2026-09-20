@@ -1,7 +1,14 @@
 import os
+import sys
 from pathlib import Path
+
+# Ensure project root is in sys.path
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from flask import Flask, render_template, session
-from config import Config
+from config import Config, INSTANCE_DIR, BASE_DIR
 from database import db, init_db
 from database.models import User, QuizQuestion
 from routes import register_blueprints
@@ -9,26 +16,38 @@ from routes import register_blueprints
 def _check_and_seed_db(app):
     with app.app_context():
         try:
+            # Check if quiz questions table has data; if empty, seed default dataset
             if not QuizQuestion.query.first():
                 from database.seed import seed_database
-                print("[LearnOS] First boot / Empty database detected. Seeding default data...")
+                print("[LearnOS] First boot / Empty database detected. Seeding initial data...")
                 seed_database()
-                print("[LearnOS] Seeding completed.")
+                print("[LearnOS] Seeding complete.")
         except Exception as e:
             print(f"[LearnOS] Seeding check notice: {e}")
 
 def create_app(config_class=Config):
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        instance_path=str(INSTANCE_DIR),
+        template_folder=str(BASE_DIR / "templates"),
+        static_folder=str(BASE_DIR / "static")
+    )
     app.config.from_object(config_class)
     
     # Ensure instance directory exists
-    Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+    try:
+        Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        print(f"[LearnOS] Instance directory notice: {e}")
     
     # Initialize Database
     db.init_app(app)
     
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"[LearnOS] db.create_all notice: {e}")
         
     _check_and_seed_db(app)
         
@@ -40,7 +59,10 @@ def create_app(config_class=Config):
     def inject_globals():
         current_user = None
         if "user_id" in session:
-            current_user = db.session.get(User, session["user_id"])
+            try:
+                current_user = db.session.get(User, session["user_id"])
+            except Exception:
+                current_user = None
         return {
             "current_user": current_user,
             "app_name": "LearnOS"
@@ -57,6 +79,7 @@ def create_app(config_class=Config):
         
     return app
 
+# Main WSGI app object
 app = create_app()
 
 if __name__ == "__main__":
@@ -65,4 +88,4 @@ if __name__ == "__main__":
     print(f"  LearnOS - AI Personalised Learning Platform")
     print(f"  Serving at: http://127.0.0.1:{port}")
     print(f"========================================================\n")
-    app.run(host="127.0.0.1", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)

@@ -116,13 +116,10 @@ def train_and_save_pipeline(profile_df, models_dir, k_range=[2, 3, 4, 5]):
     
     cluster_labels, cluster_details = interpret_clusters(kmeans, scaler, FEATURE_COLUMNS)
     
-    # Save artifacts
+    # Save artifacts if filesystem allows
     scaler_path = models_dir / "scaler.pkl"
     kmeans_path = models_dir / "kmeans.pkl"
     metadata_path = models_dir / "model_metadata.json"
-    
-    joblib.dump(scaler, scaler_path)
-    joblib.dump(kmeans, kmeans_path)
     
     metadata = {
         "best_k": best_k,
@@ -135,8 +132,13 @@ def train_and_save_pipeline(profile_df, models_dir, k_range=[2, 3, 4, 5]):
         "feature_columns": FEATURE_COLUMNS
     }
     
-    with open(metadata_path, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, indent=2)
+    try:
+        joblib.dump(scaler, scaler_path)
+        joblib.dump(kmeans, kmeans_path)
+        with open(metadata_path, "w", encoding="utf-8") as f:
+            json.dump(metadata, f, indent=2)
+    except (OSError, PermissionError) as ex:
+        print(f"[ML Pipeline] Notice: Read-only filesystem detected, running with in-memory pipeline: {ex}")
         
     return {
         "scaler": scaler,

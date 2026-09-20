@@ -21,7 +21,12 @@ from ml.learner_analysis import analyze_learner
 from ml.recommendation_engine import generate_recommendations
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        instance_path=str(Config.INSTANCE_DIR),
+        template_folder=str(Config.BASE_DIR / "templates"),
+        static_folder=str(Config.BASE_DIR / "static")
+    )
     app.config.from_object(Config)
     db.init_app(app)
     return app
@@ -30,8 +35,11 @@ def seed_database():
     app = create_app()
     with app.app_context():
         # Ensure instance directory exists
-        instance_dir = PROJECT_ROOT / "instance"
-        instance_dir.mkdir(exist_ok=True)
+        instance_dir = Config.INSTANCE_DIR
+        try:
+            instance_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
         
         print("=" * 60)
         print("SEEDING AI-BASED PERSONALISED LEARNING DATABASE")
@@ -303,8 +311,9 @@ def seed_database():
             import_learning_records_df()
         )
         
-        # Train ML model and save
-        train_result = train_and_save_pipeline(raw_df, Config.MODELS_DIR, k_range=[2, 3, 4, 5])
+        # Train ML model if not already present on disk
+        if not (Config.SCALER_PATH.exists() and Config.KMEANS_PATH.exists() and Config.METADATA_PATH.exists()):
+            train_result = train_and_save_pipeline(raw_df, Config.MODELS_DIR, k_range=[2, 3, 4, 5])
         
         # Predict for demo user
         demo_row = raw_df[raw_df["student_id"] == "STU00001"].iloc[0].to_dict()
