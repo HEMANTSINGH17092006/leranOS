@@ -13,17 +13,23 @@ from database import db, init_db
 from database.models import User, QuizQuestion
 from routes import register_blueprints
 
-def _check_and_seed_db(app):
+def _init_database_storage(app):
     with app.app_context():
         try:
-            # Check if quiz questions table has data; if empty, seed default dataset
-            if not QuizQuestion.query.first():
-                from database.seed import seed_database
-                print("[LearnOS] First boot / Empty database detected. Seeding initial data...")
-                seed_database()
-                print("[LearnOS] Seeding complete.")
+            # If database file doesn't exist in instance path, copy bundled starter database in 5ms
+            db_target = Path(app.config["INSTANCE_DIR"]) / "learning.db"
+            starter_db = Path(app.config["BASE_DIR"]) / "data" / "starter_learning.db"
+            if not db_target.exists() and starter_db.exists():
+                import shutil
+                try:
+                    shutil.copyfile(starter_db, db_target)
+                    print("[LearnOS] Bundled starter database loaded into temp instance storage.")
+                except Exception as ex:
+                    print(f"[LearnOS] Starter DB copy notice: {ex}")
+            
+            db.create_all()
         except Exception as e:
-            print(f"[LearnOS] Seeding check notice: {e}")
+            print(f"[LearnOS] Database initialization notice: {e}")
 
 def create_app(config_class=Config):
     app = Flask(
@@ -42,14 +48,7 @@ def create_app(config_class=Config):
     
     # Initialize Database
     db.init_app(app)
-    
-    with app.app_context():
-        try:
-            db.create_all()
-        except Exception as e:
-            print(f"[LearnOS] db.create_all notice: {e}")
-        
-    _check_and_seed_db(app)
+    _init_database_storage(app)
         
     # Register Blueprints
     register_blueprints(app)
